@@ -1,6 +1,7 @@
 # Astramiz - Autonomous Sailing ThRough the Arctic Marginal Ice Zone
 Active January 2025 - ???
-Ben Sprague, US Naval Academy
+
+Ben Sprague, US Naval Academy (m266042@usna.edu)
 
 Astramiz is a project to investigate methods for autonomous sail powered unmanned surface vechiles (USVs) opperating in the Arctic marginal ice zone to detect ice around them and navigate around it. This will allow for increased survivability and greater efficency for sail powered USVs opperating in the Arctic.
 
