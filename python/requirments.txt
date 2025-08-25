@@ -1,0 +1,6 @@
+pillow
+bluerobotics-ping
+opencv-python
+pandas
+numpy
+matplotlib
