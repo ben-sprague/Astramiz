@@ -8,6 +8,8 @@ import argparse
 
 from builtins import input
 
+import pickle
+
 ## Parse Command line options
 ############################
 
@@ -57,6 +59,9 @@ for n in range(400):
     m = myPing360.wait_message([definitions.PING360_AUTO_DEVICE_DATA])
     if m:
         print(m.angle)
+        f = open(f"angle{m.angle}.bin", 'wb')
+        pickle.dump(m,f)
+        f.close()
     time.sleep(0.001)
 
 # if it is a serial device, reconnect to send a line break
