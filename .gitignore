@@ -1,3 +1,4 @@
 /python/ping
 .DS_Store
 .python-version
+/python/test*

@@ -6,6 +6,11 @@ from matplotlib import pyplot as plt
 from PIL import Image
 import cv2
 
+import argparse
+
+parser = argparse.ArgumentParser(description="Ping360 Data Plotter")
+parser.add_argument('--data_location', action="store", required=True, type=str, help=".bin file directory")
+
 def unpack_class(fileName):
     file = open(fileName, 'rb')
     rawData = pickle.load(file) 
@@ -29,12 +34,12 @@ def generate_polar_image_chunk(pingData):
     range = np.linspace(0,max_range,pingData['sample_count'])
     return {'intensity': intensity, 'theta': theta, 'range': range}
 
-def generate_polar_image():
+def generate_polar_image(input_dir):
     intensity = []
     theta = []
     distance = []
-    for i in range(0,399):
-        pingData = unpack_class(f"intialScanTest/angle{i}.bin")
+    for i in range(0,200):
+        pingData = unpack_class(f"{input_dir}/angle{i}.bin")
         chunk = generate_polar_image_chunk(pingData)
         intensity.append(chunk['intensity'])
         theta.append(chunk['theta'])
@@ -46,9 +51,11 @@ def plotPolarImg(polar_img):
     theta = polar_img[1]
     distance = polar_img[2]
     fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
-    scatter = ax.scatter(theta, distance, c=intensity, cmap='Greys', s=0.1)
-    ax.set_theta_zero_location('N')  # Set 0 degrees to the top
+    ax.set_theta_zero_location('W')  # Set 0 degrees to the top
     ax.set_theta_direction(-1)  # Set the direction to be clockwise
+    ax.set_thetamin(0)
+    ax.set_thetamax(180)
+    scatter = ax.scatter(theta, distance, c=intensity, cmap='Greys', s=0.1)
     plt.show()
 
 def getPolarIndex(x, y, theta, radius, image_radius):
@@ -89,11 +96,16 @@ def polarToImg(polar_img, image_radius):
 
 
 if __name__ == "__main__":
+    args = parser.parse_args()
     speed_of_sound = 1500 #m/s
-    polar_img = generate_polar_image()
+    polar_img = generate_polar_image(args.data_location)
     image_radius = np.shape(polar_img)[2]
-    plt.imshow(cv2.warpPolar(polar_img[0,:,:],center=[image_radius,image_radius],dsize=(image_radius*2,image_radius*2),maxRadius=image_radius,flags=cv2.WARP_INVERSE_MAP + cv2.WARP_POLAR_LINEAR),cmap="viridis")
+    circle_image = cv2.warpPolar(polar_img[0,:,:],center=[image_radius,image_radius],dsize=(image_radius*2,image_radius*2),maxRadius=image_radius,flags=cv2.WARP_INVERSE_MAP + cv2.WARP_POLAR_LINEAR)
+    cv2.imwrite('rect_SONAR.png', polar_img[0,:,:])
+    cv2.imwrite('polar_SONAR.png', circle_image)
+    plt.imshow(circle_image,cmap="viridis")
     plt.show()
+
     #plotPolarImg(polar_img)
 
 
