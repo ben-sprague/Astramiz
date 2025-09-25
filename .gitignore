@@ -2,3 +2,5 @@
 .DS_Store
 .python-version
 /python/test*
+.vscode
+__pycache__
