@@ -62,4 +62,26 @@ class SeaSurface:
             yield -self.an[q-1]*(k**2)*np.cos(x*k-omega*t+self.phase[q-1])
             q += 1
 
+    def particle_velocity(self, x, t, z):
+        #Calculate the velocity of a particle in a wave orbital at a given location, time, and depth 
+        ux = np.zeros(x.shape)
+        uz = np.zeros(x.shape)
+        for indi, amp in enumerate(self.an):
+            q = indi+1
+            omega = 2*np.pi*q*self.fundi_frequency
+            #Assume deep water and apply dispersion relationship
+            k = self.g*omega**2
+            ux += omega*amp*np.exp(k*z)*np.cos(x*k-omega*t+self.phase[indi]).reshape(-1,)
+            uz += omega*amp*np.exp(k*z)*np.sin(x*k-omega*t+self.phase[indi]).reshape(-1,)
+
+        return (ux, uz)
+
+
+
+
+
+
+
+        
+
         

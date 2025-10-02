@@ -4,3 +4,4 @@
 /python/test*
 .vscode
 __pycache__
+/documents
