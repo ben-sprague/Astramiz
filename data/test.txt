@@ -1,0 +1,5 @@
+Angle 0
+ Sample Period 150
+ Num Samples 1024
+ Tx Duration 80
+ Temp 20.55

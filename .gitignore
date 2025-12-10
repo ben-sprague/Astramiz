@@ -2,6 +2,43 @@
 .DS_Store
 .python-version
 /python/test*
-.vscode
+/python/SURF/cdt_data
+.vscode/*
 __pycache__
 /documents
+reports
+/python/SURF/los plots
+/python/SURF/marked data
+/python/SURF/merged data
+/python/SURF/sonar data
+/python/SURF/wave data
+/python/SURF/backup data
+
+
+/python/SURF/120ft TT Test/wave data
+/18NOV
+/python/SURF/120ft TT Test/los plots
+/python/SURF/120ft TT Test/sonar data/18NOV
+/python/SURF/120ft TT Test/sonar data
+/python/SURF/120ft TT Test/merged data
+/python/SURF/120ft TT Test/marked data
+/.vscode
+/.vscode
+/python/SURF/2008 Cruise Profiles
+/Saildrone Wave Data
+qrcode
+qrcode.png
+test.json
+timeSyncTest.csv
+timeSyncTest.xlsx
+~$timeSyncTest.xlsx
+python/SURF/9_14_2016_42089.json
+python/SURF/3_29_2008_29555.json
+python/SURF/3_30_2008_29555.json
+python/SURF/120ft TT Test/test19.png
+python/SURF/120ft TT Test/test.nc
+python/SAIC/11SEP25/Test 1/Threshold Image/00-02-14.793.png
+python/SAIC/11SEP25/Test 1/img/00-02-14.793.png
+python/SAIC/11SEP25/Test 1/Filtered Image/00-02-20.849.png
+/17NOV
+python/SAIC/11SEP25/Test 1/Filtered Image/00-02-20.849.png

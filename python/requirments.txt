@@ -3,6 +3,17 @@ bluerobotics-ping
 opencv-python
 pandas
 numpy
+scipy
 matplotlib
 scikit-image
 torch
+wodpy
+basemap
+plotly
+dash
+dash-bootstrap-components
+pyserial
+openpyxl
+xarray[io]
+seaborn
+seaborn_image

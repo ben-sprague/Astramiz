@@ -12,7 +12,10 @@
             "program": "${file}",
             "console": "integratedTerminal",
             //"args": ["--file", "/Users/ben/Desktop/astramiz/python/ping360/20250911-112253257.bin", "--output_dir", "bTankTest"]
-            "args": ["--input_dir", "python/ping360/11SEP25/Test 2/csv", "--output_dir", "python/ping360/11SEP25/Test 2/Filtered Images"]
+            //"args": ["--input_dir", "python/ping360/11SEP25/Test 2/csv", "--output_dir", "python/ping360/11SEP25/Test 2/Filtered Images"]
+            //"args": ["--rootDir", "python/SURF/120ft TT Test", "--sonarData", "sonar data/18NOV/test18.csv", "--sonarParams", "sonar data/18NOV/test18.txt", "--waveData", "wave data/data18.xlsx", "--sonarDraft", "0.14", "--targetDraft", "0.18", "--outputLocation", "test", "--outputToRootDir"]
+            "args": ["--input_dir", "marked data", "--outputLocation", "los plots"]
+
         }
     ]
 }
