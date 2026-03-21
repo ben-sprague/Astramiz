@@ -6,21 +6,61 @@ import argparse
 
 
 import seaborn as sns
-import seaborn.objects as so
-import seaborn_image as isns
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 import os
 
-from full_sonar_plot import draw_los_shading
+def draw_los_shading(ds, ax):
+    working_df = ds['los'].to_pandas()
+    last_change = working_df.iloc[0]
+    last_change_x = working_df.index[0]
+    labeled = False
+    start_time = working_df.index[0]
+    for index, value in working_df.items():
+        if (working_state := value) != last_change:
+            row_num = working_df.index.get_loc(index)
+            if last_change == 0:
+                #If this is the end of a False section (ie the target was not in sight)
+                pass
+            else:
+                #If this is the end of a True section (ie the target was in sight)
+                if labeled:
+                    ax.axvspan(xmin = (last_change_x).total_seconds(), 
+                        xmax = (working_df.index[row_num-1]).total_seconds(), 
+                        facecolor = "0.4",
+                        alpha = 0.2,
+                        edgecolor = None,
+                        lw = 0,)
+                else:
+                    ax.axvspan(xmin = (last_change_x).total_seconds(), 
+                        xmax = (working_df.index[row_num-1]).total_seconds(), 
+                        facecolor = "0.4",
+                        alpha = 0.2,
+                        lw = 0,
+                        edgecolor = None,
+                        label = "Line of Sight")
+                    labeled = True
+            last_change = working_state
+            last_change_x = index    
 
-def makePlot(ds, out_name):
+# def generateTicks(raw_labels, interval, axis_length):
+#     rounding_percision = int(np.ceil(-np.log10(interval)))
+#     labels = [np.ceil(raw_labels[0]*10**rounding_percision)/10**rounding_percision]
+#     while labels[-1]+interval < raw_labels[-1]:
+#         labels.append(np.round(labels[-1]+interval, rounding_percision))
+
+#     label_indi = []
+#     for label in labels:
+#         label_indi.append(np.argmin(abs(raw_labels-label)))
+
+#     label_pos = np.array(label_indi)/raw_labels.size*axis_length
+#     return label_pos, labels
+
+def makePlot(ds):
     search_range_id = np.argmin(abs(ds['range'].to_numpy()-ds.attrs['target_distance']))
-    fig, (ax2, ax1) = plt.subplots(2,1,figsize = (12,7), gridspec_kw={'width_ratios': [1], 'height_ratios': [1,1]}, sharex=False)
+    fig, ax1 = plt.subplots(figsize = (12,7))
     # fig.tight_layout()
-
-    WINDOW_SIZE = 75
     
     start_time = ds['time'].to_numpy()[0].astype(np.float64)
     end_time = ds['time'].to_numpy()[-1].astype(np.float64)
@@ -30,8 +70,7 @@ def makePlot(ds, out_name):
     # ds.isel(time = slice(wave_start_id, None))['heave'].plot(color = "blue")
     # ds.isel(time = slice(wave_start_id, None))['sea_surface_height'].plot(color = "black")
 
-    pos = plt.imshow(plotted_data := ds.isel( 
-                        range = slice(search_range_id-WINDOW_SIZE,search_range_id+WINDOW_SIZE*3))['sonar_return'].T.to_pandas(),
+    pos = plt.imshow(plotted_data := ds['sonar_return'].T.to_pandas(),
                         cmap='YlGnBu',
                         vmin=0,
                         vmax=255,
@@ -42,13 +81,12 @@ def makePlot(ds, out_name):
                         #ax=ax1
                         )
     
-    min_range = plotted_data.index[0]
     max_range = plotted_data.index[-1]
 
     half_wavelength = ds.attrs['wavelength']/2
 
     first_line = True
-    for half_wavelength_number in range(int(min_range//half_wavelength)+1,int(max_range//half_wavelength)+1):
+    for half_wavelength_number in range(1,int(max_range//half_wavelength)+1):
         if first_line:
             #Add label to line for legend
             ax1.plot((start_time/1000, end_time/1000), (half_wavelength_number*half_wavelength, half_wavelength_number*half_wavelength), 'k--', label = 'Half Wavelengths')
@@ -67,7 +105,7 @@ def makePlot(ds, out_name):
         bbox_transform=ax1.transAxes,
         loc="lower left",
         borderpad=0,
-        )
+        ) 
 
     fig.colorbar(pos, cax=axins1, label = "SONAR Return Intensity")
 
@@ -76,30 +114,19 @@ def makePlot(ds, out_name):
 
     draw_los_shading(ds, ax1)
 
-    ds['SonHt'].plot(color='red', ax=ax2, label = 'SONAR Heave')
-    ds['IceHt'].plot(color='blue', ax=ax2, label = 'Sea Surface Elevation at Target')
-
-    ax2.set_xbound(ds['time'][0].astype(np.float64), ds['time'][-1].astype(np.float64))
-    ax2.set(xticks = [], ylabel = 'Elevation [m]')
-    ax2.legend(loc = 4)
     ax1.legend(loc = 4)
 
 
-    ax2.set_aspect('auto')
     ax1.set_aspect('auto')
     
     ax1.set_title("SONAR Return")
-    ax2.set_title("SONAR and Target Elevation")
 
     fig.suptitle(f'Target Distance: {ds.attrs['target_distance']}m')
 
+    return fig, ax1
     #plt.tight_layout()
 
     # plt.show()
-    
-    plt.savefig(out_name)
-    print(f"Saved to {out_name}")
-    plt.close()
 
 
 if __name__ == "__main__":
@@ -132,5 +159,8 @@ if __name__ == "__main__":
                 ds = xr.open_dataset(os.path.join(input_path, file), decode_timedelta=True)
                 fileName = file.split('.')[0]
                 outFile = os.path.join(file_dir, output_path, f"{fileName}.png")
-                makePlot(ds, outFile)
+                makePlot(ds)
+                plt.savefig(outFile)
+                print(f"Saved to {outFile}")
+                plt.close()
             

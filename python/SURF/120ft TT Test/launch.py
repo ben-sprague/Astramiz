@@ -101,7 +101,7 @@ app.layout = dbc.Container([
             html.H6("Head Azmiuth (grad, 0-399)")
         ]),
         dbc.Col([
-            dcc.Input(value=200, type="number", id = 'head_azimuth')
+            dcc.Input(value=300, type="number", id = 'head_azimuth')
         ]),
         dbc.Col([
             html.H6("Transmit Duration (us, 1-1000)")
@@ -142,6 +142,26 @@ app.layout = dbc.Container([
         dbc.Col([
             "Speed of Sound = "
         ], id = "speed_of_sound")
+    ], className="mb-2"),
+    dbc.Row([
+        dbc.Col([
+            html.H6("T (s)")
+        ]),
+        dbc.Col([
+            dcc.Input(value=1, type="number", id = 'wave_period')
+        ]),
+        dbc.Col([
+            html.H6("H (in)")
+        ]),
+        dbc.Col([
+            dcc.Input(value=1, type="number", id = 'wave_height')
+        ]),
+        dbc.Col([
+            html.H6("Target Dist (m)")
+        ]),
+        dbc.Col([
+            dcc.Input(value=1, type="number", id = 'wave_target_dist')
+        ]),
     ], className="mb-2"),
     dbc.Row([
         dbc.Button("Sample", id="sample"),
@@ -477,8 +497,12 @@ def generate_waterfall_plot(df, period, temp):
     State("sample_period", "value"),
     State("num_samples", "value"),
     State("transmit_duration", "value"),
-    State("water_temp", "value"),)
-def save_data(n, path, name, angle, period, num_samples, transmit_duration, temp):
+    State("water_temp", "value"),
+    State("wave_period", "value"),
+    State("wave_height", "value"),
+    State("wave_target_dist", "value"),)
+
+def save_data(n, path, name, angle, period, num_samples, transmit_duration, temp, T, H, tar_dist):
     if not os.path.exists(path):
         #Make sure directory exists and if it doesn't then create it
         os.makedirs(path)
@@ -486,7 +510,7 @@ def save_data(n, path, name, angle, period, num_samples, transmit_duration, temp
     if ph.working_df is not None:
         ph.working_df.to_csv(f'{path}/{name}.csv')
         with open(f'{path}/{name}.txt', 'w') as file:
-            file.write(f"Angle {angle}\nSample Period {period}\nNum Samples {num_samples}\nTx Duration {transmit_duration}\nTemp {temp}\n")
+            file.write(f"Angle {angle}\nSample Period {period}\nNum Samples {num_samples}\nTx Duration {transmit_duration}\nTemp {temp}\nT {T}\nH {H/39.37}\nTarget Dist {tar_dist}\n")
         print(f"File Saved to '{path}/{name}.csv'")
 
 

@@ -8,38 +8,57 @@ import matplotlib.pyplot as plt
 
 import argparse
 
-TANK_DEPTH = 4.9 #meters
+from stokes import StokesWave
+
+
+
+TANK_DEPTH = 1.61 #meters
 g = 9.81 #m/s^s
+ 
 
+# def wave_length_difference(Li, T, TANK_DEPTH):
+#     #Solve for the difference between Li and the Li in the airy wave equation
+#     return Li - (g*T**2/2/np.pi)*np.tanh(2*np.pi*TANK_DEPTH/Li)
 
-def wave_length_difference(Li, T):
-    #Solve for the difference between Li and the Li in the airy wave equation
-    return Li - (g*T**2/2/np.pi)*np.tanh(2*np.pi*TANK_DEPTH/Li)
+# def solve_airy_wave_length(T, water_depth):
+#     #Use deep water approximation as intial guess for fsolve
+#     L_deep = g/2/np.pi*T**2
+#     #Numerically solve full airy wave equation to get wave length
+#     return fsolve(lambda Li: wave_length_difference(Li, T, water_depth), L_deep)[0]
 
-def sea_surface_height(x, t, waveProps):
-    if type(x) is not np.ndarray and type(t) is np.ndarray:
-        x = np.full_like(t, x)
-    elif type(x) is np.ndarray and type(t) is not np.ndarray:
-        t = np.full_like(x, t)
-    elif type(x) is not np.ndarray and type(t) is not np.ndarray:
-        x = np.array([x])
-        t = np.array([t])
-        
-    num_el = len(x)
-
-    heights = []
-
-    for i in range (0,num_el):
-        heights.append(np.sum(waveProps['amp']*np.cos(waveProps['k']*x[i]+waveProps['omega']*t[i]+waveProps['phase'])))
+# def sea_surface_height(x, t, waveProps):
+#     '''
+#     Docstring for sea_surface_height
     
-    return np.array(heights)
+#     Calculte sea surface height at given position and time based on super position of multiple constituent waves
 
-def calc_height_difference(x, t, polynomial, waveProps):
-    return sea_surface_height(x, t, waveProps) - polynomial(x)
+#     :param x: x position to solve for
+#     :param t: t to solve for
+#     :param waveProps: Dictonary of wave parameters for constituent waves (amplitude, phase, wave number, angular frequency)
+#     '''
+#     if type(x) is not np.ndarray and type(t) is np.ndarray:
+#         x = np.full_like(t, x)
+#     elif type(x) is np.ndarray and type(t) is not np.ndarray:
+#         t = np.full_like(x, t)
+#     elif type(x) is not np.ndarray and type(t) is not np.ndarray:
+#         x = np.array([x])
+#         t = np.array([t])
+        
+#     num_el = len(x)
 
-def does_intersect(t, x_sonar, z_ice, z_sonar, waveProps):
+#     heights = []
+
+#     for i in range (0,num_el):
+#         heights.append(np.sum(waveProps['amp']*np.cos(waveProps['k']*x[i]+waveProps['omega']*t[i]+waveProps['phase'])))
+    
+#     return np.array(heights)
+
+def calc_height_difference(x, t, polynomial, wave):
+    return wave.calculateWave(x, t) - polynomial(x)
+
+def does_intersect(t, x_sonar, z_ice, z_sonar, wave):
     los_polynomial = Polynomial([z_ice, (z_sonar-z_ice)/x_sonar])
-    mini_result = minimize_scalar(lambda x: calc_height_difference(x, t, los_polynomial, waveProps), bounds = (0, x_sonar))
+    mini_result = minimize_scalar(lambda x: calc_height_difference(x, t, los_polynomial, wave), bounds = (0, x_sonar))
     if mini_result.fun < 0:
         return False
     else:
@@ -90,18 +109,23 @@ if __name__ == '__main__':
     yf = rfft(wave_df['sea_surface_height'].to_numpy())[1:N//2]
     xf = fftfreq(N, delta_t)[1:N//2]
 
-    #Use top 10 harmonics to recreate signal
-    n = 6
-    top_indi = np.argpartition(abs(yf), -n)[-n:]
+    # #Use top 5 harmonics to recreate signal
+    # n = 6
+    # top_indi = np.argpartition(abs(yf), -n)[-n:]
+    # top_yf = yf[top_indi]
+    # top_xf = xf[top_indi]
+
+    top_indi = np.amax(abs(yf))
     top_yf = yf[top_indi]
     top_xf = xf[top_indi]
 
+
     amp = np.abs(2.0/N*top_yf)
     phase = np.angle(2.0/N*top_yf)
-    #Use deep water approximation as intial guess for fsolve
-    L_deep = g/2/np.pi/top_xf**2
-    #Numerically solve full airy wave equation to get wave length
-    wave_length = fsolve(lambda Li: wave_length_difference(Li, 1/top_xf), L_deep)
+
+    wave = StokesWave(top_xf/2/np.pi, amp*2, TANK_DEPTH)
+
+    wave_length = wave.L
 
     waveProps = {
         'amp': amp,
@@ -111,17 +135,16 @@ if __name__ == '__main__':
     }
 
 
-
     fig, (ax1, ax2, ax3,ax4) = plt.subplots(4,1)
     t = np.linspace(0,t_test.total_seconds(),10000)
     t_plot = (t+wave_df.index[0].total_seconds())*1000
     ax1.plot(wave_df['sea_surface_height'])
-    ax1.plot(t_plot,sea_surface_height(0,t,waveProps))
+    ax1.plot(t_plot,wave.calculateWave(0,t))
 
     ax2.plot(wave_df['heave'])
-    ax2.plot(t_plot,sea_surface_height(ds.attrs['target_distance'],t,waveProps))
+    ax2.plot(t_plot,wave.calculateWave(ds.attrs['target_distance'],t))
 
-    ax3.plot(xval := np.linspace(ds.attrs['target_distance'],0,10000), sea_surface_height(xval,0,waveProps))
+    ax3.plot(xval := np.linspace(ds.attrs['target_distance'],0,10000), wave.calculateWave(xval,0))
 
     ax4.plot(xf[:100], 2.0/N * np.abs(yf[0:100]))
     ax4.plot(top_xf, 2.0/N*np.abs(top_yf), 'bo')
@@ -138,17 +161,20 @@ if __name__ == '__main__':
         x_sonar = ds.attrs['target_distance']
         time = time.total_seconds() - wave_df.index[0].total_seconds()
         los_polynomial = Polynomial([z_ice, (z_sonar-z_ice)/x_sonar])
-        in_sight.append(does_intersect(time, x_sonar, z_ice, z_sonar, waveProps))
+        in_sight.append(does_intersect(time, x_sonar, z_ice, z_sonar, wave))
         plt.close()
-        plt.plot(xval, sea_surface_height(xval,time, waveProps))
+        plt.plot(xval, wave.calculateWave(xval,time))
         plt.plot(xval, los_polynomial(xval))
-        plt.show()
+        plt.title(time)
+        plt.ylim((-0.25, 0.25))
+        plt.show(block=False)
+        plt.savefig(f"t{round(time,2)}.jpeg")
 
     wave_df.loc[:, 'los'] = in_sight
 
     #Pack Data
     #Add NaN values for all values before the wave train arrives
-    padded_in_sight = np.concatenate((np.full(ds['time'].size - wave_df.index.size, np.NaN), np.array(in_sight)))
+    padded_in_sight = np.concatenate((np.full(ds['time'].size - wave_df.index.size, np.nan), np.array(in_sight)))
     ds = ds.assign(dict(los = ('time', padded_in_sight, {
         'units': 'Boolean',
         'long_name': 'Line of Sight',})))

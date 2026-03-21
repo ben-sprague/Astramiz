@@ -31,7 +31,7 @@ df = df.rename(columns={'heave': 'Heave', 'sea_surface_height':'Sea Surface Heig
 train_time = findWaveTrain(df)
 ds = ds.assign_attrs({'wave_start_time': train_time})
 
-#Calculate when there is line of sight
+#Calculate when there is line of sight 
 
 #Perform fft on wave data
 wave_start_id = np.argmin(abs(ds['time'].to_numpy()-ds.attrs['wave_start_time'].astype('timedelta64[ms]')))

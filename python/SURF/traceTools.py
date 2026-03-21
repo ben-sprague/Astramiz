@@ -86,7 +86,7 @@ def plot_trace(s,t,z,trace,plot_profile=False):
     ax2.set_label('Depth [m]')
     ax2.legend()
 
-    cutoff_plot = False #Set true to cutoff y axis below the sound propagation path (plus 5%), set false to show full sound speed profile
+    cutoff_plot = True #Set true to cutoff y axis below the sound propagation path (plus 5%), set false to show full sound speed profile
 
     if cutoff_plot:
         ax1.set_ylim((ylim := (np.max([np.max(zf[m]) for m in range(0, len(theta0))])*1.05), 0))
