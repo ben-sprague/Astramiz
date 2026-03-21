@@ -13,6 +13,14 @@ reports
 /python/SURF/sonar data
 /python/SURF/wave data
 /python/SURF/backup data
+*.xlsx
+*.csv
+*.txt
+*.nc
+*.png
+*.mp4
+*.npy
+*.pth
 
 
 /python/SURF/120ft TT Test/wave data
@@ -42,3 +50,5 @@ python/SAIC/11SEP25/Test 1/img/00-02-14.793.png
 python/SAIC/11SEP25/Test 1/Filtered Image/00-02-20.849.png
 /17NOV
 python/SAIC/11SEP25/Test 1/Filtered Image/00-02-20.849.png
+
+.vscode/launch.json
