@@ -66,7 +66,7 @@ if __name__ == '__main__':
         est_rel_range = np.reshape(est_rel_range, (-1,))
         est_abs_range = est_rel_range*(max_range-min_range)+min_range
         SS_res = SS_res+np.sum((est_abs_range-abs_range)**2)
-        AE_sum = AE_sum + np.sum(est_abs_range-abs_range)
+        AE_sum = AE_sum + np.sum(np.abs(est_abs_range-abs_range))
         AE = np.append(AE, est_abs_range-abs_range)
 
 

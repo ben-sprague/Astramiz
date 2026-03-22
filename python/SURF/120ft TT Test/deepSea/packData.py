@@ -10,12 +10,10 @@ import cv2
 #Setup argument parser
 parser = argparse.ArgumentParser()
 #Data file paths
-parser.add_argument('--outputLocation', required=True, type=str, help='Path to save data to')
 parser.add_argument('--input_dir', action="store", required=True, type=str, help="Directory with .nc files")
 
 args = parser.parse_args()
 input_path = args.input_dir
-output_path = args.outputLocation
 
 abs_path = os.path.abspath(__file__)
 file_dir = os.path.dirname(abs_path)
@@ -23,6 +21,7 @@ file_dir = os.path.dirname(abs_path)
 df = pd.DataFrame(columns=['file_num','int_return', 'perst_return', 'difference'])
 CHUNK_WIDTH = 30
 CHUNK_HEIGHT = 500
+CHUNK_DURATION = 1 #Seconds
 data_chunks = np.ndarray(shape=(CHUNK_HEIGHT,CHUNK_WIDTH,0))
 target_distances = np.ndarray(shape=(4,0))
 if os.path.isdir(input_path := os.path.join(file_dir,args.input_dir)):
@@ -35,7 +34,6 @@ if os.path.isdir(input_path := os.path.join(file_dir,args.input_dir)):
             #Open File
             ds = xr.open_dataset(os.path.join(input_path, file), decode_timedelta=True)
             fileName = file.split('.')[0]
-            outFile = os.path.join(file_dir, output_path, f"{fileName}.png")
             sonar_data = ds.sonar_return.T.to_numpy()
             los_data = ds.los.to_numpy()
 
@@ -65,10 +63,14 @@ if os.path.isdir(input_path := os.path.join(file_dir,args.input_dir)):
 
             
 
+            #Calculate width of data to grab to form chunk
+            test_duration = (ds.time[-1]-ds.time[0]).to_numpy().astype(np.float64)/1000
+            sampling_rate = ds.attrs['num_samples']/test_duration
+            step_size = int(CHUNK_DURATION*sampling_rate)
 
             for array_index, TF_transition_index in enumerate(TF_transition_indicies):
                 FT_transition_index = FT_transition_indicies[array_index]
-                for i in range (TF_transition_index, FT_transition_index, CHUNK_WIDTH):
+                for i in range (TF_transition_index, FT_transition_index, step_size):
                     if TF_transition_index+CHUNK_WIDTH<FT_transition_index:
                         #Full Chunk is possible
                         chunk_columns_end = i+CHUNK_WIDTH
@@ -76,7 +78,16 @@ if os.path.isdir(input_path := os.path.join(file_dir,args.input_dir)):
                         #Partial chunk needed
                         chunk_columns_end = FT_transition_index
                     raw_chunk = sonar_data[:,i:chunk_columns_end].astype(np.float32)
-                    scaled_chunk = cv2.resize(raw_chunk, (CHUNK_WIDTH, CHUNK_HEIGHT), interpolation=cv2.INTER_AREA)
+                    #Downscale height
+                    scaled_chunk = cv2.resize(raw_chunk, (raw_chunk.shape[1], CHUNK_HEIGHT), interpolation=cv2.INTER_AREA)
+                    #Check if upscaling or downscaling width
+                    if raw_chunk.shape[0] > CHUNK_WIDTH:
+                        #Downscaling, use inter area interpolation
+                        scaled_chunk = cv2.resize(scaled_chunk, (CHUNK_WIDTH, CHUNK_HEIGHT), interpolation=cv2.INTER_AREA)
+                    else:
+                        #Upscaling, use inter cubic interpolation
+                        scaled_chunk = cv2.resize(scaled_chunk, (CHUNK_WIDTH, CHUNK_HEIGHT), interpolation=cv2.INTER_CUBIC)
+
                     scaled_chunk = np.resize(scaled_chunk, (CHUNK_HEIGHT, CHUNK_WIDTH, 1))
                     data_chunks = np.append(data_chunks, scaled_chunk, axis=2)
                     target_distances = np.append(target_distances, np.reshape(working_ranges, (4,1)), axis=1)

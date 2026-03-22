@@ -31,8 +31,11 @@ if __name__ == "__main__":
             print(os.path.join(input_path, file))
             if file[0] != '.':
                 ds = xr.open_dataset(os.path.join(input_path, file), decode_timedelta=True)
-                TANK_DEPTH = 1.61
-                wave = StokesWave(ds.attrs['commanded_T'], ds.attrs['commanded_H'], TANK_DEPTH)
-                ds = ds.assign_attrs({'wavelength': wave.L})
-                ds = ds.assign_attrs({'tank_depth': TANK_DEPTH})
-                ds.to_netcdf(os.path.join(f'{input_path}/../newData',file))
+                duration = (ds.time[-1]-ds.time[0]).to_numpy().astype(np.float64)/1000
+                print(ds.attrs['num_samples']/duration)
+                print(30/(ds.attrs['num_samples']/duration))
+                # TANK_DEPTH = 1.61
+                # wave = StokesWave(ds.attrs['commanded_T'], ds.attrs['commanded_H'], TANK_DEPTH)
+                # ds = ds.assign_attrs({'wavelength': wave.L})
+                # ds = ds.assign_attrs({'tank_depth': TANK_DEPTH})
+                # ds.to_netcdf(os.path.join(f'{input_path}/../newData',file))

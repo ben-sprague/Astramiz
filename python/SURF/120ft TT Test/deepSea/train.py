@@ -36,7 +36,7 @@ if __name__ == "__main__":
     net = NewNet()
     net.to(device)
 
-    optimizer = optim.Adam(net.parameters(), lr=0.01)
+    optimizer = optim.Adam(net.parameters(), lr=0.007)
     criterion = nn.MSELoss()
     running_loss = 0
     loss_history = list()
