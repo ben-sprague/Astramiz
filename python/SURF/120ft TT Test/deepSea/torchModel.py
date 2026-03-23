@@ -5,6 +5,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset
 
+from matplotlib import pyplot as plt
+
 if torch.backends.mps.is_available():
     device = torch.device("mps")
     print("MPS device found.")
@@ -61,12 +63,19 @@ class NewNet(nn.Module):
 
     def __init__(self):
         super(NewNet, self).__init__()
-        self.conv1 = nn.Conv2d(1,4,kernel_size=(2,5), padding=(0,1))
-        self.conv2 = nn.Conv2d(4,8,kernel_size=(2,5), padding=(0,1))
-        self.conv3 = nn.Conv2d(8,12,kernel_size=(2,5), padding=(0,1))
+        # self.conv1 = nn.Conv2d(1,4,kernel_size=(3,3), padding=(0,2))
+        # self.conv2 = nn.Conv2d(4,8,kernel_size=(3,3), padding=(0,2))
+        # self.conv3 = nn.Conv2d(8,16,kernel_size=(3,3), padding=(0,2))
 
-        self.fc1 = nn.Linear(1464, 146)
-        self.fc2 = nn.Linear(146, 1)
+       
+
+
+        self.conv1 = nn.Conv2d(1,4,kernel_size=(3,3), padding=(0,2))
+        self.conv2 = nn.Conv2d(4,8,kernel_size=(3,1), padding=(0,0))
+        self.conv3 = nn.Conv2d(8,16,kernel_size=(3,1), padding=(0,0))
+
+        self.fc1 = nn.Linear(2560, 256)
+        self.fc2 = nn.Linear(256, 1)
      
     def forward(self, input):
         #First convolution layer: 1 input image, 4 output channels, 5x5 kernel
@@ -75,7 +84,7 @@ class NewNet(nn.Module):
         c1 = F.relu(self.conv1(input))
         # plt.imshow(c1[0,0,:,:].cpu().detach().numpy(), aspect='auto')
         # plt.show()
-        s2 = F.max_pool2d(c1, (2,2))
+        s2 = F.max_pool2d(c1, (3,3))
         # plt.imshow(s2[0,0,:,:].cpu().detach().numpy(), aspect='auto')
         # plt.show()
         c3 = F.relu(self.conv2(s2))
@@ -87,10 +96,22 @@ class NewNet(nn.Module):
         c5 = F.relu(self.conv3(s4))
         # plt.imshow(c5[0,0,:,:].detach().numpy(), aspect='auto')
         # plt.show()
-        s6 = F.max_pool2d(c5, (2,2))
-
+        s6 = F.max_pool2d(c5, (1,2))
+        # plt.imshow(s6[0,0,:,:].cpu().detach().numpy(), aspect='auto')
+        # plt.show()
+        # plt.imshow(s6[0,1,:,:].cpu().detach().numpy(), aspect='auto')
+        # plt.show()
+        # plt.imshow(s6[0,2,:,:].cpu().detach().numpy(), aspect='auto')
+        # plt.show()
+        # plt.imshow(s6[0,3,:,:].cpu().detach().numpy(), aspect='auto')
+        # plt.show()
+        # plt.imshow(s6[0,4,:,:].cpu().detach().numpy(), aspect='auto')
+        # plt.show()
+        # plt.imshow(s6[0,5,:,:].cpu().detach().numpy(), aspect='auto')
+        # plt.show()
         s6 = torch.flatten(s6,1)
-
+        
+        
         f7 = F.relu(self.fc1(s6))
         output = (self.fc2(f7))
 

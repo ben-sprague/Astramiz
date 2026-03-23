@@ -44,7 +44,7 @@ if __name__ == '__main__':
     net.load_state_dict(state_dict)
     net.to(device)
 
-    criterion = nn.L1Loss(reduction='mean')
+    criterion = nn.MSELoss(reduction='mean')
     running_loss = 0
     loss_history = list()
 

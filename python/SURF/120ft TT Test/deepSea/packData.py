@@ -96,8 +96,8 @@ if os.path.isdir(input_path := os.path.join(file_dir,args.input_dir)):
 TRAINING_PERCENT = 0.8
 num_training = int(data_chunks.shape[2]*TRAINING_PERCENT)
 num_testing = data_chunks.shape[2]-num_training
-training_indies = np.random.randint(0,data_chunks.shape[2],num_training)
-testing_indies = np.setdiff1d(np.arange(data_chunks.shape[2]), training_indies)
+training_indies = np.random.choice(all_indies := np.arange(data_chunks.shape[2]),num_training, replace=False)
+testing_indies = np.setdiff1d(all_indies, training_indies)
 
 np.save('fullSONARData', data_chunks.astype(np.float32))
 np.save('trainingSONARData', data_chunks[:,:,training_indies].astype(np.float32))
