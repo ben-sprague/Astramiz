@@ -21,6 +21,8 @@ reports
 *.mp4
 *.npy
 *.pth
+*.json
+*.jpeg
 
 
 /python/SURF/120ft TT Test/wave data
